@@ -1,3 +1,46 @@
-body {
-    font-size: 15pt;
-}
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+body { background: linear-gradient(135deg, #e8f0fe 0%, #d9e6f5 100%); min-height: 100vh; padding: 20px; }
+.app-container { max-width: 1400px; margin: 0 auto; }
+.card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(2px); border-radius: 28px; box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.15); padding: 24px 28px; border: 1px solid rgba(255,255,255,0.5); }
+.card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eef2ff; padding-bottom: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+.card-header h2 { font-size: 1.6rem; font-weight: 700; background: linear-gradient(120deg, #1e3c72, #2a5298); background-clip: text; -webkit-background-clip: text; color: transparent; }
+.btn { border: none; padding: 10px 20px; border-radius: 40px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 8px; background: #f1f5f9; color: #1e293b; }
+.btn-primary { background: #2c5f8a; color: white; }
+.btn-primary:hover { background: #1e405e; transform: translateY(-2px); }
+.btn-success { background: #2b7a4b; color: white; }
+.btn-danger { background: #c2412c; color: white; }
+.btn-warning { background: #e6b12e; color: #2d2b1f; }
+.btn-info { background: #3b82f6; color: white; }
+.btn-sm { padding: 6px 14px; font-size: 0.75rem; }
+table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+th, td { padding: 12px 8px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+th { background: #f8fafc; font-weight: 600; color: #0f3b5c; }
+.badge { background: #e2e3e8; padding: 4px 10px; border-radius: 30px; font-size: 0.7rem; font-weight: 600; }
+.badge-terlambat { background: #dc2626; color: white; }
+.badge-dipinjam { background: #eab308; color: #1e293b; }
+.badge-dikembalikan { background: #10b981; color: white; }
+.badge-diperpanjang { background: #8b5cf6; color: white; }
+.badge-denda { background: #f97316; color: white; }
+.form-group { margin-bottom: 16px; }
+label { font-weight: 600; display: block; margin-bottom: 6px; color: #1e2a44; }
+input, select { width: 100%; padding: 12px 14px; border-radius: 20px; border: 1.5px solid #cbd5e1; font-size: 0.9rem; transition: 0.2s; }
+input:focus, select:focus { outline: none; border-color: #2c5f8a; box-shadow: 0 0 0 3px rgba(44,95,138,0.2); }
+.password-wrapper { position: relative; display: flex; align-items: center; }
+.password-wrapper input { flex: 1; padding-right: 45px; }
+.toggle-password { position: absolute; right: 14px; cursor: pointer; color: #6b7280; background: transparent; border: none; }
+.login-box { max-width: 500px; margin: 40px auto; }
+.navbar { display: flex; justify-content: space-between; align-items: center; background: white; padding: 12px 28px; border-radius: 60px; margin-bottom: 30px; }
+.logo { font-weight: 800; font-size: 1.5rem; background: linear-gradient(130deg, #1e3c72, #2b6a9f); background-clip: text; -webkit-background-clip: text; color: transparent; }
+.user-info { display: flex; align-items: center; gap: 18px; }
+.grid-2cols { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; }
+.modal-content { background: white; max-width: 550px; width: 90%; border-radius: 32px; padding: 24px; }
+.search-bar { margin-bottom: 20px; display: flex; gap: 12px; }
+.search-bar input { flex: 1; }
+@media (max-width: 800px) { .grid-2cols { grid-template-columns: 1fr; } .card-header { flex-direction: column; align-items: start; gap: 12px; } }
+.footer-note { text-align: center; margin-top: 20px; font-size: 0.75rem; color: #4b5563; }
+.aksi-group { display: flex; gap: 6px; flex-wrap: wrap; }
+.toggle-form { text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e2e8f0; }
+.toggle-form a { color: #2c5f8a; cursor: pointer; font-weight: 600; text-decoration: none; }
+.denda-amount { font-weight: bold; color: #dc2626; }
+.date-note { font-size: 0.7rem; color: #6b7280; margin-top: 4px; }
