@@ -87,17 +87,13 @@ function handleToggle(e) {
     }
 }
 
-// Load data dengan filter
+// Load data
 async function loadBuku(filter = '') {
     const snapshot = await getDocs(query(bukuRef, orderBy("judul")));
     let data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     if(filter) {
         const f = filter.toLowerCase().trim();
-        data = data.filter(b => 
-            b.judul?.toLowerCase().includes(f) || 
-            b.penerbit?.toLowerCase().includes(f) || 
-            b.jenis?.toLowerCase().includes(f)
-        );
+        data = data.filter(b => b.judul?.toLowerCase().includes(f) || b.penerbit?.toLowerCase().includes(f) || b.jenis?.toLowerCase().includes(f));
     }
     return data;
 }
@@ -106,10 +102,7 @@ async function loadAnggota(filter='') {
     let data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     if(filter) {
         const f = filter.toLowerCase().trim();
-        data = data.filter(a => 
-            a.nama?.toLowerCase().includes(f) || 
-            a.kelas?.toLowerCase().includes(f)
-        );
+        data = data.filter(a => a.nama?.toLowerCase().includes(f) || a.kelas?.toLowerCase().includes(f));
     }
     return data;
 }
@@ -385,48 +378,6 @@ async function renderUserDashboard() {
     }));
 }
 
-// Setup search listeners dengan debounce dan mencegah duplikasi
-let searchTimeoutAdmin = null;
-let searchTimeoutUser = null;
-
-function setupAdminSearchListeners() {
-    const searchBukuInput = document.getElementById('searchBukuAdmin');
-    const searchAnggotaInput = document.getElementById('searchAnggota');
-    
-    if (searchBukuInput) {
-        const newHandler = () => {
-            if (searchTimeoutAdmin) clearTimeout(searchTimeoutAdmin);
-            searchTimeoutAdmin = setTimeout(() => renderAdminDashboard(), 300);
-        };
-        // Hapus listener lama jika ada (simpan referensi)
-        if (searchBukuInput._listener) searchBukuInput.removeEventListener('input', searchBukuInput._listener);
-        searchBukuInput.addEventListener('input', newHandler);
-        searchBukuInput._listener = newHandler;
-    }
-    if (searchAnggotaInput) {
-        const newHandler = () => {
-            if (searchTimeoutAdmin) clearTimeout(searchTimeoutAdmin);
-            searchTimeoutAdmin = setTimeout(() => renderAdminDashboard(), 300);
-        };
-        if (searchAnggotaInput._listener) searchAnggotaInput.removeEventListener('input', searchAnggotaInput._listener);
-        searchAnggotaInput.addEventListener('input', newHandler);
-        searchAnggotaInput._listener = newHandler;
-    }
-}
-
-function setupUserSearchListeners() {
-    const searchBukuUserInput = document.getElementById('searchBukuUser');
-    if (searchBukuUserInput) {
-        const newHandler = () => {
-            if (searchTimeoutUser) clearTimeout(searchTimeoutUser);
-            searchTimeoutUser = setTimeout(() => renderUserDashboard(), 300);
-        };
-        if (searchBukuUserInput._listener) searchBukuUserInput.removeEventListener('input', searchBukuUserInput._listener);
-        searchBukuUserInput.addEventListener('input', newHandler);
-        searchBukuUserInput._listener = newHandler;
-    }
-}
-
 // Login
 async function login(username, password, role) {
     if(role === 'admin' && username === 'admin' && password === 'admin123') { currentUser = { role: 'admin', username: 'Admin Perpus', userId: 'admin_uid' }; return true; }
@@ -439,9 +390,18 @@ async function login(username, password, role) {
     return false;
 }
 
-// Event listeners
-document.getElementById('showRegisterBtn').onclick = () => { document.getElementById('loginFormContainer').style.display = 'none'; document.getElementById('registerFormContainer').style.display = 'block'; initPasswordToggles(); };
-document.getElementById('showLoginBtn').onclick = () => { document.getElementById('registerFormContainer').style.display = 'none'; document.getElementById('loginFormContainer').style.display = 'block'; initPasswordToggles(); };
+// Event listeners untuk login dan register
+document.getElementById('showRegisterBtn').onclick = () => { 
+    document.getElementById('loginFormContainer').style.display = 'none'; 
+    document.getElementById('registerFormContainer').style.display = 'block'; 
+    initPasswordToggles(); 
+};
+document.getElementById('showLoginBtn').onclick = () => { 
+    document.getElementById('registerFormContainer').style.display = 'none'; 
+    document.getElementById('loginFormContainer').style.display = 'block'; 
+    initPasswordToggles(); 
+};
+
 document.getElementById('registerForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const nama = document.getElementById('regNama').value.trim();
@@ -458,9 +418,14 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     document.getElementById('registerFormContainer').style.display = 'none';
     document.getElementById('loginFormContainer').style.display = 'block';
 });
+
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const success = await login(document.getElementById('loginUsername').value, document.getElementById('loginPassword').value, document.getElementById('loginRole').value);
+    const success = await login(
+        document.getElementById('loginUsername').value,
+        document.getElementById('loginPassword').value,
+        document.getElementById('loginRole').value
+    );
     if(success) {
         document.getElementById('loginSection').style.display = 'none';
         document.getElementById('mainApp').style.display = 'block';
@@ -469,7 +434,11 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
             document.getElementById('userPanel').style.display = 'none';
             document.getElementById('currentUserRole').innerHTML = `<i class="fas fa-crown"></i> Admin: ${currentUser.username}`;
             await renderAdminDashboard();
-            setupAdminSearchListeners();
+            // Setup search listeners dengan debounce sederhana
+            const searchBukuAdmin = document.getElementById('searchBukuAdmin');
+            const searchAnggota = document.getElementById('searchAnggota');
+            if(searchBukuAdmin) searchBukuAdmin.addEventListener('input', () => renderAdminDashboard());
+            if(searchAnggota) searchAnggota.addEventListener('input', () => renderAdminDashboard());
             document.getElementById('btnTambahBuku').onclick = tambahBuku;
             document.getElementById('btnTambahAnggota').onclick = tambahAnggota;
             document.getElementById('btnPinjamBukuAdmin').onclick = pinjamManual;
@@ -478,18 +447,30 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
             document.getElementById('userPanel').style.display = 'block';
             document.getElementById('currentUserRole').innerHTML = `<i class="fas fa-graduation-cap"></i> Siswa: ${currentUser.username}`;
             await renderUserDashboard();
-            setupUserSearchListeners();
+            const searchBukuUser = document.getElementById('searchBukuUser');
+            if(searchBukuUser) searchBukuUser.addEventListener('input', () => renderUserDashboard());
         }
-    } else alert("Login gagal!");
+    } else {
+        alert("Login gagal! Periksa username/password.");
+    }
 });
+
 document.getElementById('logoutBtn').onclick = () => location.reload();
 initPasswordToggles();
 
 // Seed data awal
 (async function seed() {
-    if((await getDocs(bukuRef)).empty) {
-        await addDoc(bukuRef, { judul: "Pemrograman Web Modern", penerbit: "Erlangga", jenis: "Teknologi", stok: 5 });
-        await addDoc(bukuRef, { judul: "Laskar Pelangi", penerbit: "Bentang", jenis: "Fiksi", stok: 3 });
+    try {
+        const bukuSnapshot = await getDocs(bukuRef);
+        if(bukuSnapshot.empty) {
+            await addDoc(bukuRef, { judul: "Pemrograman Web Modern", penerbit: "Erlangga", jenis: "Teknologi", stok: 5 });
+            await addDoc(bukuRef, { judul: "Laskar Pelangi", penerbit: "Bentang", jenis: "Fiksi", stok: 3 });
+        }
+        const anggotaSnapshot = await getDocs(anggotaRef);
+        if(anggotaSnapshot.empty) {
+            await addDoc(anggotaRef, { nama: "user1", kelas: "XI RPL", password: "user123", tanggalDaftar: new Date().toLocaleDateString(), totalDenda: 0 });
+        }
+    } catch(e) {
+        console.error("Seed error:", e);
     }
-    if((await getDocs(anggotaRef)).empty) await addDoc(anggotaRef, { nama: "user1", kelas: "XI RPL", password: "user123", tanggalDaftar: new Date().toLocaleDateString(), totalDenda: 0 });
 })();
