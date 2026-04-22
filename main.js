@@ -87,17 +87,30 @@ function handleToggle(e) {
     }
 }
 
-// Load data
+// Load data dengan filter
 async function loadBuku(filter = '') {
     const snapshot = await getDocs(query(bukuRef, orderBy("judul")));
     let data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    if(filter) data = data.filter(b => b.judul?.toLowerCase().includes(filter) || b.penerbit?.toLowerCase().includes(filter) || b.jenis?.toLowerCase().includes(filter));
+    if(filter) {
+        const f = filter.toLowerCase().trim();
+        data = data.filter(b => 
+            b.judul?.toLowerCase().includes(f) || 
+            b.penerbit?.toLowerCase().includes(f) || 
+            b.jenis?.toLowerCase().includes(f)
+        );
+    }
     return data;
 }
 async function loadAnggota(filter='') {
     const snapshot = await getDocs(anggotaRef);
     let data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    if(filter) data = data.filter(a => a.nama?.toLowerCase().includes(filter) || a.kelas?.toLowerCase().includes(filter));
+    if(filter) {
+        const f = filter.toLowerCase().trim();
+        data = data.filter(a => 
+            a.nama?.toLowerCase().includes(f) || 
+            a.kelas?.toLowerCase().includes(f)
+        );
+    }
     return data;
 }
 async function loadPeminjaman(role, userId=null) {
@@ -270,13 +283,32 @@ async function pinjamManual() {
 
 // Render dashboard admin
 async function renderAdminDashboard() {
-    const buku = await loadBuku(document.getElementById('searchBukuAdmin')?.value || '');
-    document.querySelector('#tableBukuAdmin tbody').innerHTML = buku.map(b => `<tr><td>${escapeHtml(b.judul)}</td><td>${escapeHtml(b.penerbit)}</td><td>${escapeHtml(b.jenis)}</td><td>${b.stok}</td><td class="aksi-group"><button class="btn btn-warning btn-sm editBuku" data-id="${b.id}"><i class="fas fa-edit"></i> Edit</button><button class="btn btn-danger btn-sm hapusBuku" data-id="${b.id}"><i class="fas fa-trash"></i> Hapus</button></td></tr>`).join('');
+    const filterBuku = document.getElementById('searchBukuAdmin')?.value || '';
+    const buku = await loadBuku(filterBuku);
+    document.querySelector('#tableBukuAdmin tbody').innerHTML = buku.map(b => `<tr>
+        <td>${escapeHtml(b.judul)}</td>
+        <td>${escapeHtml(b.penerbit)}</td>
+        <td>${escapeHtml(b.jenis)}</td>
+        <td>${b.stok}</td>
+        <td class="aksi-group">
+            <button class="btn btn-warning btn-sm editBuku" data-id="${b.id}"><i class="fas fa-edit"></i> Edit</button>
+            <button class="btn btn-danger btn-sm hapusBuku" data-id="${b.id}"><i class="fas fa-trash"></i> Hapus</button>
+        </td>
+    </tr>`).join('');
     document.querySelectorAll('.editBuku').forEach(btn => btn.addEventListener('click', () => editBuku(btn.dataset.id)));
     document.querySelectorAll('.hapusBuku').forEach(btn => btn.addEventListener('click', () => hapusBuku(btn.dataset.id)));
 
-    const anggota = await loadAnggota(document.getElementById('searchAnggota')?.value || '');
-    document.querySelector('#tableAnggota tbody').innerHTML = anggota.map(a => `<tr><td>${escapeHtml(a.nama)}</td><td>${escapeHtml(a.kelas)}</td><td>${a.tanggalDaftar || '-'}</td><td class="aksi-group"><button class="btn btn-warning btn-sm editAnggota" data-id="${a.id}">Edit</button><button class="btn btn-danger btn-sm hapusAnggota" data-id="${a.id}">Hapus</button></td></tr>`).join('');
+    const filterAnggota = document.getElementById('searchAnggota')?.value || '';
+    const anggota = await loadAnggota(filterAnggota);
+    document.querySelector('#tableAnggota tbody').innerHTML = anggota.map(a => `<tr>
+        <td>${escapeHtml(a.nama)}</td>
+        <td>${escapeHtml(a.kelas)}</td>
+        <td>${a.tanggalDaftar || '-'}</td>
+        <td class="aksi-group">
+            <button class="btn btn-warning btn-sm editAnggota" data-id="${a.id}">Edit</button>
+            <button class="btn btn-danger btn-sm hapusAnggota" data-id="${a.id}">Hapus</button>
+        </td>
+    </tr>`).join('');
     document.querySelectorAll('.editAnggota').forEach(btn => btn.addEventListener('click', () => editAnggota(btn.dataset.id)));
     document.querySelectorAll('.hapusAnggota').forEach(btn => btn.addEventListener('click', () => hapusAnggota(btn.dataset.id)));
 
@@ -290,7 +322,17 @@ async function renderAdminDashboard() {
                              <button class="btn btn-success btn-sm prosesKembali" data-id="${p.id}" data-buku="${p.bukuId}"><i class="fas fa-undo-alt"></i> Kembalikan</button>`;
         }
         actionButtons += `<button class="btn btn-danger btn-sm hapusTransaksi" data-id="${p.id}" data-buku="${p.bukuId}" data-status="${p.status}"><i class="fas fa-trash-alt"></i> Hapus</button>`;
-        return `<tr><td>${escapeHtml(p.namaPeminjam)}</td><td>${escapeHtml(p.judulBuku)}</td><td>${formatDate(p.tanggalPinjam)}</td><td>${formatDate(p.tanggalJatuhTempo)}${p.perpanjangKe ? `<br><small class="badge badge-diperpanjang">x${p.perpanjangKe}</small>` : ''}</td><td>${formatDate(p.tglKembali)}</td><td>${hariTerlambat > 0 ? `${hariTerlambat} hari` : '-'}</td><td>${denda > 0 ? `<span class="denda-amount">${formatRupiah(denda)}</span>` : '-'}</td><td>${statusBadge}</td><td class="aksi-group">${actionButtons}</td></tr>`;
+        return `<tr>
+            <td>${escapeHtml(p.namaPeminjam)}</td>
+            <td>${escapeHtml(p.judulBuku)}</td>
+            <td>${formatDate(p.tanggalPinjam)}</td>
+            <td>${formatDate(p.tanggalJatuhTempo)}${p.perpanjangKe ? `<br><small class="badge badge-diperpanjang">x${p.perpanjangKe}</small>` : ''}</td>
+            <td>${formatDate(p.tglKembali)}</td>
+            <td>${hariTerlambat > 0 ? `${hariTerlambat} hari` : '-'}</td>
+            <td>${denda > 0 ? `<span class="denda-amount">${formatRupiah(denda)}</span>` : '-'}</td>
+            <td>${statusBadge}</td>
+            <td class="aksi-group">${actionButtons}</td>
+        </tr>`;
     }).join('');
     document.querySelectorAll('.perpanjangBtn').forEach(btn => btn.addEventListener('click', async () => { await perpanjangPeminjaman(btn.dataset.id); await renderAdminDashboard(); }));
     document.querySelectorAll('.prosesKembali').forEach(btn => btn.addEventListener('click', async () => { await prosesKembali(btn.dataset.id, btn.dataset.buku, false); await renderAdminDashboard(); }));
@@ -299,8 +341,15 @@ async function renderAdminDashboard() {
 
 // Render dashboard user
 async function renderUserDashboard() {
-    const buku = await loadBuku(document.getElementById('searchBukuUser')?.value || '');
-    document.querySelector('#tableBukuUser tbody').innerHTML = buku.map(b => `<tr><td>${escapeHtml(b.judul)}</td><td>${escapeHtml(b.penerbit)}</td><td>${escapeHtml(b.jenis)}</td><td>${b.stok}</td><td>${b.stok > 0 ? `<button class="btn btn-primary btn-sm pinjamBukuBtn" data-id="${b.id}" data-judul="${escapeHtml(b.judul)}"><i class="fas fa-book"></i> Pinjam</button>` : 'Stok Habis'}</td></tr>`).join('');
+    const filterBukuUser = document.getElementById('searchBukuUser')?.value || '';
+    const buku = await loadBuku(filterBukuUser);
+    document.querySelector('#tableBukuUser tbody').innerHTML = buku.map(b => `<tr>
+        <td>${escapeHtml(b.judul)}</td>
+        <td>${escapeHtml(b.penerbit)}</td>
+        <td>${escapeHtml(b.jenis)}</td>
+        <td>${b.stok}</td>
+        <td>${b.stok > 0 ? `<button class="btn btn-primary btn-sm pinjamBukuBtn" data-id="${b.id}" data-judul="${escapeHtml(b.judul)}"><i class="fas fa-book"></i> Pinjam</button>` : 'Stok Habis'}</td>
+    </tr>`).join('');
     document.querySelectorAll('.pinjamBukuBtn').forEach(btn => btn.addEventListener('click', async () => {
         const anggotaDoc = await getDoc(doc(anggotaRef, currentUser.userId));
         if((anggotaDoc.data()?.totalDenda || 0) > 0) return alert(`Anda memiliki denda ${formatRupiah(anggotaDoc.data().totalDenda)}. Harap lunasi ke admin.`);
@@ -319,12 +368,63 @@ async function renderUserDashboard() {
     document.querySelector('#tablePeminjamanUser tbody').innerHTML = loans.map(l => {
         const { hariTerlambat, denda } = hitungDendaDanTerlambat(l.tanggalJatuhTempo, l.tglKembali);
         const statusBadge = l.status === 'Dikembalikan' ? '<span class="badge badge-dikembalikan">Dikembalikan</span>' : (hariTerlambat > 0 ? '<span class="badge badge-terlambat">Terlambat</span>' : '<span class="badge badge-dipinjam">Dipinjam</span>');
-        return `<tr><td>${escapeHtml(l.judulBuku)}</td><td>${formatDate(l.tanggalPinjam)}</td><td>${formatDate(l.tanggalJatuhTempo)}</td><td>${formatDate(l.tglKembali)}</td><td>${hariTerlambat > 0 ? `${hariTerlambat} hari` : '-'}</td><td>${denda > 0 ? formatRupiah(denda) : '-'}</td><td>${statusBadge}</td><td>${l.status !== 'Dikembalikan' ? `<button class="btn btn-warning btn-sm userKembaliManual" data-id="${l.id}" data-buku="${l.bukuId}"><i class="fas fa-calendar-alt"></i> Kembalikan (Pilih Tgl)</button>` : '-'}</td></tr>`;
+        return `<tr>
+            <td>${escapeHtml(l.judulBuku)}</td>
+            <td>${formatDate(l.tanggalPinjam)}</td>
+            <td>${formatDate(l.tanggalJatuhTempo)}</td>
+            <td>${formatDate(l.tglKembali)}</td>
+            <td>${hariTerlambat > 0 ? `${hariTerlambat} hari` : '-'}</td>
+            <td>${denda > 0 ? formatRupiah(denda) : '-'}</td>
+            <td>${statusBadge}</td>
+            <td>${l.status !== 'Dikembalikan' ? `<button class="btn btn-warning btn-sm userKembaliManual" data-id="${l.id}" data-buku="${l.bukuId}"><i class="fas fa-calendar-alt"></i> Kembalikan (Pilih Tgl)</button>` : '-'}</td>
+        </tr>`;
     }).join('');
     document.querySelectorAll('.userKembaliManual').forEach(btn => btn.addEventListener('click', async () => {
         await prosesKembali(btn.dataset.id, btn.dataset.buku, true, currentUser.userId);
         await renderUserDashboard();
     }));
+}
+
+// Setup search listeners dengan debounce dan mencegah duplikasi
+let searchTimeoutAdmin = null;
+let searchTimeoutUser = null;
+
+function setupAdminSearchListeners() {
+    const searchBukuInput = document.getElementById('searchBukuAdmin');
+    const searchAnggotaInput = document.getElementById('searchAnggota');
+    
+    if (searchBukuInput) {
+        const newHandler = () => {
+            if (searchTimeoutAdmin) clearTimeout(searchTimeoutAdmin);
+            searchTimeoutAdmin = setTimeout(() => renderAdminDashboard(), 300);
+        };
+        // Hapus listener lama jika ada (simpan referensi)
+        if (searchBukuInput._listener) searchBukuInput.removeEventListener('input', searchBukuInput._listener);
+        searchBukuInput.addEventListener('input', newHandler);
+        searchBukuInput._listener = newHandler;
+    }
+    if (searchAnggotaInput) {
+        const newHandler = () => {
+            if (searchTimeoutAdmin) clearTimeout(searchTimeoutAdmin);
+            searchTimeoutAdmin = setTimeout(() => renderAdminDashboard(), 300);
+        };
+        if (searchAnggotaInput._listener) searchAnggotaInput.removeEventListener('input', searchAnggotaInput._listener);
+        searchAnggotaInput.addEventListener('input', newHandler);
+        searchAnggotaInput._listener = newHandler;
+    }
+}
+
+function setupUserSearchListeners() {
+    const searchBukuUserInput = document.getElementById('searchBukuUser');
+    if (searchBukuUserInput) {
+        const newHandler = () => {
+            if (searchTimeoutUser) clearTimeout(searchTimeoutUser);
+            searchTimeoutUser = setTimeout(() => renderUserDashboard(), 300);
+        };
+        if (searchBukuUserInput._listener) searchBukuUserInput.removeEventListener('input', searchBukuUserInput._listener);
+        searchBukuUserInput.addEventListener('input', newHandler);
+        searchBukuUserInput._listener = newHandler;
+    }
 }
 
 // Login
@@ -369,17 +469,16 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
             document.getElementById('userPanel').style.display = 'none';
             document.getElementById('currentUserRole').innerHTML = `<i class="fas fa-crown"></i> Admin: ${currentUser.username}`;
             await renderAdminDashboard();
+            setupAdminSearchListeners();
             document.getElementById('btnTambahBuku').onclick = tambahBuku;
             document.getElementById('btnTambahAnggota').onclick = tambahAnggota;
             document.getElementById('btnPinjamBukuAdmin').onclick = pinjamManual;
-            document.getElementById('searchBukuAdmin').addEventListener('input', () => renderAdminDashboard());
-            document.getElementById('searchAnggota').addEventListener('input', () => renderAdminDashboard());
         } else {
             document.getElementById('adminPanel').style.display = 'none';
             document.getElementById('userPanel').style.display = 'block';
             document.getElementById('currentUserRole').innerHTML = `<i class="fas fa-graduation-cap"></i> Siswa: ${currentUser.username}`;
             await renderUserDashboard();
-            document.getElementById('searchBukuUser').addEventListener('input', () => renderUserDashboard());
+            setupUserSearchListeners();
         }
     } else alert("Login gagal!");
 });
